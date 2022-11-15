@@ -1,0 +1,6 @@
+[submodule "VideoCreator"]
+	path = VideoCreator
+	url = https://github.com/L-TheG/redditVideoGenerator.git
+[submodule "DataGetter"]
+	path = DataGetter
+	url = https://github.com/L-TheG/redditScraper.git
