@@ -1,0 +1,4 @@
+/build
+/screenshots/*
+/node_modules
+.env
