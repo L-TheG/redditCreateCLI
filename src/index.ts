@@ -4,14 +4,8 @@ import path from "path";
 import { cwd } from "process";
 import { cpSync, readdirSync, writeFileSync } from "fs";
 
+// TODO: Comment code
 // TODO: Add flags to only do certain parts of this pipeline
-// TODO: Add flag to set which platform the video goes to (maybe desktop too?)
-// TODO: Add long format posts
-// TODO: Add image posts
-// TODO: Add frontpage report
-// TODO: Dockerise
-// TODO: Host assets somewhere else
-// TODO: Add flag to paremerise video length
 // TODO: Make Asset folder top level and pass as argument
 // TODO: Use different voices for each comment
 // TODO: Auto upload to Youtube, TikTok, Instagram
@@ -20,13 +14,21 @@ import { cpSync, readdirSync, writeFileSync } from "fs";
 // TODO: Randomise which part of which background video gets used
 // TODO: Investigate Bell placement on post screen
 // TODO: Centralise output of all components (public folder, datagetter output, videocreator in and output) in cli root
-// TODO: Comment code
+// TODO: Add option to set title at gen time
+// TODO: Add more background videos
+
+// Backlog
+// TODO: Add flag to set which platform the video goes to (maybe desktop too?)
+// TODO: Add flag to paremerise video length
+// TODO: Host assets somewhere else
+// TODO: Dockerise
 // TODO: Add motion blur to posts sliding in
-// TODO: Add option to manually set title
+// TODO: Make waiting for audio clips more accurate
+// TODO: Add long format posts
+// TODO: Add image posts
+// TODO: Add frontpage report
 // TODO: Add auto thumbnail
 // TODO: Add possibility for custom thumbnails
-// TODO: Add a little padding after each clip so they dont cut off the text
-// TODO: Make waiting for audio clips more accurate
 
 dotenv.config();
 await main();
