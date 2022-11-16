@@ -7,7 +7,6 @@ import { cpSync, readdirSync, writeFileSync } from "fs";
 // TODO: Comment code
 // TODO: Add flags to only do certain parts of this pipeline
 // TODO: Make Asset folder top level and pass as argument
-// TODO: Use different voices for each comment
 // TODO: Auto upload to Youtube, TikTok, Instagram
 // TODO: Add translation to German, Spanish, Portuguese, Italian, maybe Russian
 // TODO: Investigate glitches in background video
