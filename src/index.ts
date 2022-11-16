@@ -25,6 +25,8 @@ import { cpSync, readdirSync, writeFileSync } from "fs";
 // TODO: Add option to manually set title
 // TODO: Add auto thumbnail
 // TODO: Add possibility for custom thumbnails
+// TODO: Add a little padding after each clip so they dont cut off the text
+// TODO: Make waiting for audio clips more accurate
 
 dotenv.config();
 await main();
