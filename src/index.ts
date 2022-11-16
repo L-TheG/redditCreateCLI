@@ -3,7 +3,7 @@ import concurrently from "concurrently";
 import path from "path";
 import { cwd } from "process";
 
-import { readdirSync } from "fs";
+import { cpSync, readdirSync, writeFileSync } from "fs";
 
 dotenv.config();
 await main();
@@ -15,10 +15,19 @@ async function main() {
   const postLink = parseArgs();
   await installVideoCreator();
   await installDataGetter();
-
   await getData(postLink);
-  const newFolder = await getNewFolder(dataPath, oldFolders);
-  console.log(newFolder[0]);
+
+  const newFolder = (await getNewFolder(dataPath, oldFolders))[0];
+
+  // Copy content to Remotion public directory
+  cpSync(path.join(cwd(), "/DataGetter/screenshots/" + newFolder), path.join(cwd(), "/VideoCreator/public/" + newFolder), { recursive: true });
+  createConfigFile(newFolder);
+
+  await renderVideo(path.join(cwd(), "/DataGetter/screenshots" + newFolder + "/out/" + newFolder + ".mp4"), "RedditVid");
+}
+
+function createConfigFile(contentPath: string) {
+  writeFileSync(path.join(cwd(), "VideoCreator/props.json"), JSON.stringify({ projectFolder: contentPath }));
 }
 
 function parseArgs() {
@@ -42,12 +51,7 @@ async function installVideoCreator() {
     restartTries: 0,
     cwd: path.join(cwd(), "/VideoCreator"),
   });
-  command.result
-    .then((res) => console.log("downloaded modules successfully"))
-    .catch((err) => {
-      console.log(err);
-      process.exit();
-    });
+  await command.result;
 }
 
 async function installDataGetter() {
@@ -57,12 +61,7 @@ async function installDataGetter() {
     restartTries: 0,
     cwd: path.join(cwd(), "/DataGetter"),
   });
-  command.result
-    .then((res) => console.log("downloaded modules successfully"))
-    .catch((err) => {
-      console.log(err);
-      process.exit();
-    });
+  await command.result;
 }
 
 async function getData(postLink: string) {
@@ -85,14 +84,26 @@ async function getData(postLink: string) {
     }
   );
 
-  command.result
-    .then((res) => {
-      console.log("Got all data");
-    })
-    .catch((err) => {
-      console.log(err);
-      process.exit();
-    });
+  await command.result;
+}
+
+async function renderVideo(outputLocation: string, compositionID: string) {
+  const command = concurrently(
+    [
+      {
+        command: "npx remotion render --props=./props.json " + compositionID + " " + outputLocation + " --concurrency=16 --gl=angle",
+        name: "Remotion Render",
+      },
+    ],
+    {
+      prefix: "name",
+      killOthers: ["success", "failure"],
+      restartTries: 0,
+      cwd: path.join(cwd(), "/VideoCreator"),
+    }
+  );
+
+  await command.result;
 }
 
 async function getNewFolder(path: string, oldFolders: string[]) {
