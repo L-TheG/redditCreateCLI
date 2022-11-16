@@ -2,8 +2,29 @@ import * as dotenv from "dotenv";
 import concurrently from "concurrently";
 import path from "path";
 import { cwd } from "process";
-
 import { cpSync, readdirSync, writeFileSync } from "fs";
+
+// TODO: Add flags to only do certain parts of this pipeline
+// TODO: Add flag to set which platform the video goes to (maybe desktop too?)
+// TODO: Add long format posts
+// TODO: Add image posts
+// TODO: Add frontpage report
+// TODO: Dockerise
+// TODO: Host assets somewhere else
+// TODO: Add flag to paremerise video length
+// TODO: Make Asset folder top level and pass as argument
+// TODO: Use different voices for each comment
+// TODO: Auto upload to Youtube, TikTok, Instagram
+// TODO: Add translation to German, Spanish, Portuguese, Italian, maybe Russian
+// TODO: Investigate glitches in background video
+// TODO: Randomise which part of which background video gets used
+// TODO: Investigate Bell placement on post screen
+// TODO: Centralise output of all components (public folder, datagetter output, videocreator in and output) in cli root
+// TODO: Comment code
+// TODO: Add motion blur to posts sliding in
+// TODO: Add option to manually set title
+// TODO: Add auto thumbnail
+// TODO: Add possibility for custom thumbnails
 
 dotenv.config();
 await main();
@@ -23,7 +44,7 @@ async function main() {
   cpSync(path.join(cwd(), "/DataGetter/screenshots/" + newFolder), path.join(cwd(), "/VideoCreator/public/" + newFolder), { recursive: true });
   createConfigFile(newFolder);
 
-  await renderVideo(path.join(cwd(), "/DataGetter/screenshots" + newFolder + "/out/" + newFolder + ".mp4"), "RedditVid");
+  await renderVideo(path.join(cwd(), "/DataGetter/screenshots/" + newFolder + "/" + newFolder + ".mp4"), "RedditVid");
 }
 
 function createConfigFile(contentPath: string) {
@@ -91,7 +112,7 @@ async function renderVideo(outputLocation: string, compositionID: string) {
   const command = concurrently(
     [
       {
-        command: "npx remotion render --props=./props.json " + compositionID + " " + outputLocation + " --concurrency=16 --gl=angle",
+        command: "npx remotion render --props=./props.json " + compositionID + " " + outputLocation + " --concurrency=8 --gl=angle",
         name: "Remotion Render",
       },
     ],
