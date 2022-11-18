@@ -2,3 +2,7 @@
 /screenshots/*
 /node_modules
 .env
+*.csv
+*.wav
+*.mp4
+*.webm

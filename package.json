@@ -7,7 +7,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "rimraf ./build && tsc",
-    "start": "npm run build && node build/index.js postLink=https://www.reddit.com/r/AskReddit/comments/yvbfn2/whats_the_most_overrated_drink/"
+    "start": "npm run build && node build/index.js --all --link=https://www.reddit.com/r/AskReddit/comments/yxxs30/who_had_the_biggest_fall_from_grace_in_history/ --bgVideosDir=bgVideos --workingDir=workingDir --duration=30 --title='quotable movies' --tags='reddit,askreddit'"
   },
   "keywords": [],
   "author": "",
@@ -23,6 +23,8 @@
   },
   "dependencies": {
     "concurrently": "^7.5.0",
-    "dotenv": "^16.0.3"
+    "dotenv": "^16.0.3",
+    "google-auth-library": "^8.7.0",
+    "googleapis": "^109.0.1"
   }
 }

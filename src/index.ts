@@ -1,8 +1,13 @@
 import * as dotenv from "dotenv";
-import concurrently from "concurrently";
 import path from "path";
 import { cwd } from "process";
-import { cpSync, readdirSync, writeFileSync } from "fs";
+import { constants, copyFileSync, cpSync, existsSync, mkdirSync, readdirSync, symlinkSync, writeFileSync } from "fs";
+import { installVideoCreator, installDataGetter, getData, renderVideo } from "./commands.js";
+import { parseArgs, parseFlags } from "./handleArgs.js";
+import { access } from "fs/promises";
+
+dotenv.config();
+const charactersOfTitleToKeep = 23;
 
 // TODO: Comment code
 // TODO: Add flags to only do certain parts of this pipeline
@@ -15,6 +20,8 @@ import { cpSync, readdirSync, writeFileSync } from "fs";
 // TODO: Centralise output of all components (public folder, datagetter output, videocreator in and output) in cli root
 // TODO: Add option to set title at gen time
 // TODO: Add more background videos
+// TODO: Improve CLI output
+// TODO: Improve performance of audio generation
 
 // Backlog
 // TODO: Add flag to set which platform the video goes to (maybe desktop too?)
@@ -29,112 +36,76 @@ import { cpSync, readdirSync, writeFileSync } from "fs";
 // TODO: Add auto thumbnail
 // TODO: Add possibility for custom thumbnails
 
-dotenv.config();
+// create --all/--scrape/--render/--upload --bgVideosDir=/pathToAsetts --workingDir=/pathToOutFolder --link=www.post.link --duration=0 --title=title --tags=these,are,tags
+
+const args = parseArgs();
+const flags = parseFlags();
+const projectDirName = createProjectDirName(args.link);
 await main();
 
 async function main() {
-  const dataPath = path.join(cwd(), "/DataGetter/screenshots");
-  const oldFolders = getAllFilesInDir(dataPath);
+  createDir(path.join(cwd(), args.workingDir, projectDirName));
+  createDir(path.join(cwd(), args.workingDir, projectDirName, "data"));
+  createDir(path.join(cwd(), args.workingDir, projectDirName, "audio"));
+  createDir(path.join(cwd(), args.workingDir, projectDirName, "out"));
 
-  const postLink = parseArgs();
   await installVideoCreator();
   await installDataGetter();
-  await getData(postLink);
 
-  const newFolder = (await getNewFolder(dataPath, oldFolders))[0];
-
-  // Copy content to Remotion public directory
-  cpSync(path.join(cwd(), "/DataGetter/screenshots/" + newFolder), path.join(cwd(), "/VideoCreator/public/" + newFolder), { recursive: true });
-  createConfigFile(newFolder);
-
-  await renderVideo(path.join(cwd(), "/DataGetter/screenshots/" + newFolder + "/" + newFolder + ".mp4"), "RedditVid");
-}
-
-function createConfigFile(contentPath: string) {
-  writeFileSync(path.join(cwd(), "VideoCreator/props.json"), JSON.stringify({ projectFolder: contentPath }));
-}
-
-function parseArgs() {
-  let postLink: string | undefined;
-  process.argv.forEach((element) => {
-    if (element.includes("postLink=")) {
-      postLink = element.split("=")[1];
+  if (flags.all || flags.scrape) {
+    await getData(args.link, path.join(cwd(), args.workingDir, projectDirName), args.duration);
+    if (flags.scrape) {
+      return;
     }
-  });
-  if (postLink === undefined) {
-    console.log("No post link provided");
-    process.exit();
   }
-  return postLink;
-}
 
-async function installVideoCreator() {
-  const command = concurrently([{ command: "npm i", name: "Install VideoCreator" }], {
-    prefix: "name",
-    killOthers: ["success", "failure"],
-    restartTries: 0,
-    cwd: path.join(cwd(), "/VideoCreator"),
-  });
-  await command.result;
-}
+  if (flags.all || flags.render) {
+    createDir(path.join(cwd(), "VideoCreator", "public", "assets", "bgVideos"));
+    cpSync(path.join(cwd(), args.workingDir, projectDirName), path.join(cwd(), "VideoCreator", "public", projectDirName), {
+      force: true,
+      recursive: true,
+    });
+    const selectedBgVideo = selectBgVideo(path.join(cwd(), args.bgVideosDir));
+    copyFileSync(
+      path.join(cwd(), args.bgVideosDir, selectedBgVideo),
+      path.join(cwd(), "VideoCreator", "public", "assets", "bgVideos", selectedBgVideo)
+    );
 
-async function installDataGetter() {
-  const command = concurrently([{ command: "npm i", name: "Install DataGetter" }], {
-    prefix: "name",
-    killOthers: ["success", "failure"],
-    restartTries: 0,
-    cwd: path.join(cwd(), "/DataGetter"),
-  });
-  await command.result;
-}
-
-async function getData(postLink: string) {
-  const command = concurrently(
-    [
-      {
-        command: "npm run build && node build/index.js postLink=" + postLink,
-        name: "Get Data",
-        env: {
-          MS_SPEECH_SERVICE_KEY: process.env.MS_SPEECH_SERVICE_KEY as string,
-          MS_SPEECH_SERVICE_REGION: process.env.MS_SPEECH_SERVICE_REGION as string,
-        },
-      },
-    ],
-    {
-      prefix: "name",
-      killOthers: ["success", "failure"],
-      restartTries: 0,
-      cwd: path.join(cwd(), "/DataGetter"),
+    createConfigFile(projectDirName, selectedBgVideo);
+    await renderVideo(path.join(cwd(), args.workingDir, projectDirName, "out", projectDirName + ".mp4"), "RedditVid");
+    if (flags.render) {
+      return;
     }
-  );
-
-  await command.result;
+  }
 }
 
-async function renderVideo(outputLocation: string, compositionID: string) {
-  const command = concurrently(
-    [
-      {
-        command: "npx remotion render --props=./props.json " + compositionID + " " + outputLocation + " --concurrency=8 --gl=angle",
-        name: "Remotion Render",
-      },
-    ],
-    {
-      prefix: "name",
-      killOthers: ["success", "failure"],
-      restartTries: 0,
-      cwd: path.join(cwd(), "/VideoCreator"),
-    }
-  );
-
-  await command.result;
+function createConfigFile(contentPath: string, selectedBgVideo: string) {
+  writeFileSync(path.join(cwd(), "VideoCreator/props.json"), JSON.stringify({ projectFolder: contentPath, selectedBgVideo: selectedBgVideo }));
 }
 
-async function getNewFolder(path: string, oldFolders: string[]) {
-  const currentFolders = getAllFilesInDir(path);
-  return currentFolders.filter((x) => !oldFolders.includes(x)).concat(oldFolders.filter((x) => !currentFolders.includes(x)));
+function createProjectDirName(link: string) {
+  const dateString = createDateString();
+  const subreddit = link.split("/")[4];
+  const id = link.split("/")[6];
+  const title = link.split("/")[7].substring(0, charactersOfTitleToKeep);
+  return `${dateString}_${subreddit}_${id}_${title}`;
 }
 
-function getAllFilesInDir(dir: string) {
-  return readdirSync(dir);
+function createDateString() {
+  const now = new Date();
+  const offsetMs = now.getTimezoneOffset() * 60 * 1000;
+  const dateLocal = new Date(now.getTime() - offsetMs);
+  const dateString = dateLocal.toISOString().slice(0, 19).replace("T", "_").replaceAll(":", "_").substring(0, 10);
+  return dateString;
+}
+
+function createDir(dirToCreate: string) {
+  if (!existsSync(dirToCreate)) {
+    mkdirSync(dirToCreate, { recursive: true });
+  }
+}
+
+function selectBgVideo(absolutePathToBgVidDir: string) {
+  const bgVideos = readdirSync(absolutePathToBgVidDir);
+  return bgVideos[Math.floor(Math.random() * bgVideos.length)];
 }
