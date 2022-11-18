@@ -1,10 +1,10 @@
 import * as dotenv from "dotenv";
-import path from "path";
 import { cwd } from "process";
-import { constants, copyFileSync, cpSync, existsSync, mkdirSync, readdirSync, symlinkSync, writeFileSync } from "fs";
+import { copyFileSync, cpSync, existsSync, mkdirSync, readdirSync, writeFileSync } from "fs";
 import { installVideoCreator, installDataGetter, getData, renderVideo } from "./commands.js";
 import { parseArgs, parseFlags } from "./handleArgs.js";
-import { access } from "fs/promises";
+import { runSample } from "./youtubeUpload.js";
+import { join } from "path";
 
 dotenv.config();
 const charactersOfTitleToKeep = 23;
@@ -44,43 +44,44 @@ const projectDirName = createProjectDirName(args.link);
 await main();
 
 async function main() {
-  createDir(path.join(cwd(), args.workingDir, projectDirName));
-  createDir(path.join(cwd(), args.workingDir, projectDirName, "data"));
-  createDir(path.join(cwd(), args.workingDir, projectDirName, "audio"));
-  createDir(path.join(cwd(), args.workingDir, projectDirName, "out"));
+  createDir(join(cwd(), args.workingDir, projectDirName));
+  createDir(join(cwd(), args.workingDir, projectDirName, "data"));
+  createDir(join(cwd(), args.workingDir, projectDirName, "audio"));
+  createDir(join(cwd(), args.workingDir, projectDirName, "out"));
 
   await installVideoCreator();
   await installDataGetter();
 
   if (flags.all || flags.scrape) {
-    await getData(args.link, path.join(cwd(), args.workingDir, projectDirName), args.duration);
+    await getData(args.link, join(cwd(), args.workingDir, projectDirName), args.duration);
     if (flags.scrape) {
       return;
     }
   }
 
   if (flags.all || flags.render) {
-    createDir(path.join(cwd(), "VideoCreator", "public", "assets", "bgVideos"));
-    cpSync(path.join(cwd(), args.workingDir, projectDirName), path.join(cwd(), "VideoCreator", "public", projectDirName), {
+    createDir(join(cwd(), "VideoCreator", "public", "assets", "bgVideos"));
+    cpSync(join(cwd(), args.workingDir, projectDirName), join(cwd(), "VideoCreator", "public", projectDirName), {
       force: true,
       recursive: true,
     });
-    const selectedBgVideo = selectBgVideo(path.join(cwd(), args.bgVideosDir));
-    copyFileSync(
-      path.join(cwd(), args.bgVideosDir, selectedBgVideo),
-      path.join(cwd(), "VideoCreator", "public", "assets", "bgVideos", selectedBgVideo)
-    );
+    const selectedBgVideo = selectBgVideo(join(cwd(), args.bgVideosDir));
+    copyFileSync(join(cwd(), args.bgVideosDir, selectedBgVideo), join(cwd(), "VideoCreator", "public", "assets", "bgVideos", selectedBgVideo));
 
     createConfigFile(projectDirName, selectedBgVideo);
-    await renderVideo(path.join(cwd(), args.workingDir, projectDirName, "out", projectDirName + ".mp4"), "RedditVid");
+    await renderVideo(join(cwd(), args.workingDir, projectDirName, "out", projectDirName + ".mp4"), "RedditVid");
     if (flags.render) {
       return;
     }
   }
+
+  if (flags.all || flags.upload) {
+    await runSample(join(cwd(), args.workingDir, projectDirName, "out", projectDirName + ".mp4"));
+  }
 }
 
 function createConfigFile(contentPath: string, selectedBgVideo: string) {
-  writeFileSync(path.join(cwd(), "VideoCreator/props.json"), JSON.stringify({ projectFolder: contentPath, selectedBgVideo: selectedBgVideo }));
+  writeFileSync(join(cwd(), "VideoCreator/props.json"), JSON.stringify({ projectFolder: contentPath, selectedBgVideo: selectedBgVideo }));
 }
 
 function createProjectDirName(link: string) {

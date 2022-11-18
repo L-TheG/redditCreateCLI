@@ -7,7 +7,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "rimraf ./build && tsc",
-    "start": "npm run build && node build/index.js --all --link=https://www.reddit.com/r/AskReddit/comments/yxxs30/who_had_the_biggest_fall_from_grace_in_history/ --bgVideosDir=bgVideos --workingDir=workingDir --duration=30 --title='quotable movies' --tags='reddit,askreddit'"
+    "start": "npm run build && node build/index.js --upload --link=https://www.reddit.com/r/AskReddit/comments/yxa8k1/whats_an_addiction_that_no_one_takes_seriously/ --bgVideosDir=bgVideos --workingDir=workingDir --duration=30 --title='quotable movies' --tags='reddit,askreddit'"
   },
   "keywords": [],
   "author": "",
@@ -22,6 +22,7 @@
     "typescript": "^4.8.4"
   },
   "dependencies": {
+    "@google-cloud/local-auth": "^2.1.1",
     "concurrently": "^7.5.0",
     "dotenv": "^16.0.3",
     "google-auth-library": "^8.7.0",

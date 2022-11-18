@@ -1,128 +1,69 @@
-let fs = require("fs");
-let readline = require("readline");
-let { google } = require("googleapis");
-let OAuth2 = google.auth.OAuth2;
-
-// If modifying these scopes, delete your previously saved credentials
-// at ~/.credentials/youtube-nodejs-quickstart.json
-let SCOPES = ["https://www.googleapis.com/auth/youtube.readonly"];
-let TOKEN_DIR = (process.env.HOME || process.env.HOMEPATH || process.env.USERPROFILE) + "/.credentials/";
-let TOKEN_PATH = TOKEN_DIR + "youtube-nodejs-quickstart.json";
-
-// Load client secrets from a local file.
-fs.readFile("client_secret.json", function processClientSecrets(err, content) {
-  if (err) {
-    console.log("Error loading client secret file: " + err);
-    return;
-  }
-  // Authorize a client with the loaded credentials, then call the YouTube API.
-  authorize(JSON.parse(content), getChannel);
-});
+// Copyright 2016 Google LLC
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 /**
- * Create an OAuth2 client with the given credentials, and then execute the
- * given callback function.
- *
- * @param {Object} credentials The authorization client credentials.
- * @param {function} callback The callback to call with the authorized client.
+ * Usage: node upload.js PATH_TO_VIDEO_FILE
  */
-function authorize(credentials, callback) {
-  let clientSecret = credentials.installed.client_secret;
-  let clientId = credentials.installed.client_id;
-  let redirectUrl = credentials.installed.redirect_uris[0];
-  let oauth2Client = new OAuth2(clientId, clientSecret, redirectUrl);
 
-  // Check if we have previously stored a token.
-  fs.readFile(TOKEN_PATH, function (err, token) {
-    if (err) {
-      getNewToken(oauth2Client, callback);
-    } else {
-      oauth2Client.credentials = JSON.parse(token);
-      callback(oauth2Client);
-    }
-  });
-}
+import { createReadStream, statSync } from "fs";
+import { join } from "path";
+import { clearLine, cursorTo } from "readline";
+import { google } from "googleapis";
+import { authenticate } from "@google-cloud/local-auth";
+import { cwd } from "process";
 
-/**
- * Get and store new token after prompting for user authorization, and then
- * execute the given callback with the authorized OAuth2 client.
- *
- * @param {google.auth.OAuth2} oauth2Client The OAuth2 client to get token for.
- * @param {getEventsCallback} callback The callback to call with the authorized
- *     client.
- */
-function getNewToken(oauth2Client, callback) {
-  let authUrl = oauth2Client.generateAuthUrl({
-    access_type: "offline",
-    scope: SCOPES,
-  });
-  console.log("Authorize this app by visiting this url: ", authUrl);
-  let rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout,
-  });
-  rl.question("Enter the code from that page here: ", function (code) {
-    rl.close();
-    oauth2Client.getToken(code, function (err, token) {
-      if (err) {
-        console.log("Error while trying to retrieve access token", err);
-        return;
-      }
-      oauth2Client.credentials = token;
-      storeToken(token);
-      callback(oauth2Client);
-    });
-  });
-}
+// initialize the Youtube API library
+const youtube = google.youtube("v3");
 
-/**
- * Store token to disk be used in later program executions.
- *
- * @param {Object} token The token to store to disk.
- */
-function storeToken(token) {
-  try {
-    fs.mkdirSync(TOKEN_DIR);
-  } catch (err) {
-    if (err.code != "EEXIST") {
-      throw err;
-    }
-  }
-  fs.writeFile(TOKEN_PATH, JSON.stringify(token), (err) => {
-    if (err) throw err;
-    console.log("Token stored to " + TOKEN_PATH);
+// very basic example of uploading a video to youtube
+export async function runSample(fileName: string) {
+  // Obtain user credentials to use for the request
+  const auth = await authenticate({
+    keyfilePath: join(cwd(), "client_secret.json"),
+    scopes: ["https://www.googleapis.com/auth/youtube.upload", "https://www.googleapis.com/auth/youtube"],
   });
-}
+  google.options({ auth });
 
-/**
- * Lists the names and IDs of up to 10 files.
- *
- * @param {google.auth.OAuth2} auth An authorized OAuth2 client.
- */
-function getChannel(auth) {
-  let service = google.youtube("v3");
-  service.channels.list(
+  const fileSize = statSync(fileName).size;
+  const res = await youtube.videos.insert(
     {
-      auth: auth,
-      part: "snippet,contentDetails,statistics",
-      forUsername: "GoogleDevelopers",
+      part: ["id,snippet", "status"],
+      notifySubscribers: false,
+      requestBody: {
+        snippet: {
+          title: "Node.js YouTube Upload Test",
+          description: "Testing YouTube upload via Google APIs Node.js Client",
+        },
+        status: {
+          privacyStatus: "private",
+        },
+      },
+      media: {
+        body: createReadStream(fileName),
+      },
     },
-    function (err, response) {
-      if (err) {
-        console.log("The API returned an error: " + err);
-        return;
-      }
-      let channels = response.data.items;
-      if (channels.length == 0) {
-        console.log("No channel found.");
-      } else {
-        console.log(
-          "This channel's ID is %s. Its title is '%s', and " + "it has %s views.",
-          channels[0].id,
-          channels[0].snippet.title,
-          channels[0].statistics.viewCount
-        );
-      }
+    {
+      // Use the `onUploadProgress` event from Axios to track the
+      // number of bytes uploaded to this point.
+      onUploadProgress: (evt) => {
+        const progress = (evt.bytesRead / fileSize) * 100;
+        clearLine(process.stdout, 0);
+        cursorTo(process.stdout, 0, undefined);
+        process.stdout.write(`${Math.round(progress)}% complete`);
+      },
     }
   );
+  console.log("\n\n");
+  console.log(res.data);
+  return res.data;
 }
