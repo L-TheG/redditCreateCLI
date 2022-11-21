@@ -1,5 +1,5 @@
-import fs, { createReadStream, mkdirSync, statSync, writeFileSync } from "fs";
-import readline, { clearLine, cursorTo } from "readline";
+import fs, { mkdirSync, writeFileSync } from "fs";
+import readline from "readline";
 import { google } from "googleapis";
 import path from "path";
 import { cwd } from "process";

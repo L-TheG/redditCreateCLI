@@ -37,11 +37,11 @@ export async function uploadYoutubeVideo(vidSettings: { title: string; tags: str
       requestBody: {
         snippet: {
           title: vidSettings.title,
-          description: vidSettings.description,
-          channelId: "UC1Vih4EKkirbBmx1iWU3B3w",
+          description: vidSettings.description, // hashtags must be included here
+          channelId: process.env.YT_FOLYVORA_CHANNEL_ID,
           channelTitle: "Folyvora",
-          tags: vidSettings.tags,
-          categoryId: "24",
+          tags: vidSettings.tags, // Tags dont show up as hashtags
+          categoryId: "24", // 24 = "Entertainment"
         },
         status: {
           publishAt: isodate,
