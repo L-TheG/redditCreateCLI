@@ -7,7 +7,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "rimraf ./build && tsc",
-    "start": "npm run build && node build/index.js --upload --link=https://www.reddit.com/r/AskReddit/comments/yzp591/if_there_was_a_vote_for_one_person_to_receive/ --bgVideosDir=bgVideos --workingDir=workingDir --duration=30 --title=\"reddits chooses immortals\" --tags=reddit,askreddit,shorts,gameplay --description=\"askreddit users choose people deserving of immortality\""
+    "start": "npm run build && node build/index.js --all --link=https://www.reddit.com/r/AskReddit/comments/yx41rn/whats_your_toxic_trait_that_youre_proud_of/ --bgVideosDir=bgVideos --workingDir=workingDir --duration=30 --title=\"reddit users toxic traits\" --tags=reddit,askreddit,shorts,society,depression,toxic,anxiety,social --description=\"reddit users reveal their toxic traits\""
   },
   "keywords": [],
   "author": "",

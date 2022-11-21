@@ -8,9 +8,9 @@ export async function uploadYoutubeVideo(vidSettings: { title: string; tags: str
   const test = date.setHours(date.getHours() + 2);
   const isodate = new Date(test).toISOString();
 
-  const clientSecret = process.env.OAUTH_CLIENT_SECRET;
-  const clientId = process.env.OAUTH_CLIENT_ID;
-  const redirectUrl = process.env.OAUTH_REDIRECT_URL;
+  const clientSecret = process.env.YT_OAUTH_CLIENT_SECRET;
+  const clientId = process.env.YT_OAUTH_CLIENT_ID;
+  const redirectUrl = process.env.YT_OAUTH_REDIRECT_URL;
   const service = google.youtube("v3");
   const oauth2Client = new OAuth2Client(clientId, clientSecret, redirectUrl);
 
@@ -22,7 +22,7 @@ export async function uploadYoutubeVideo(vidSettings: { title: string; tags: str
     body: JSON.stringify({
       client_id: clientId,
       client_secret: clientSecret,
-      refresh_token: process.env.OAUTH_REFRESH_TOKEN,
+      refresh_token: process.env.YT_OAUTH_REFRESH_TOKEN,
       grant_type: "refresh_token",
     }),
   });

@@ -24,9 +24,9 @@ export async function obtainNewAccessData() {
  * @param {function} callback The callback to call with the authorized client.
  */
 async function authorize() {
-  const clientSecret = process.env.OAUTH_CLIENT_SECRET;
-  const clientId = process.env.OAUTH_CLIENT_ID;
-  const redirectUrl = process.env.OAUTH_REDIRECT_URL;
+  const clientSecret = process.env.YT_OAUTH_CLIENT_SECRET;
+  const clientId = process.env.YT_OAUTH_CLIENT_ID;
+  const redirectUrl = process.env.YT_OAUTH_REDIRECT_URL;
   const oauth2Client = new OAuth2(clientId, clientSecret, redirectUrl);
   // Check if we have previously stored a token.
   fs.readFile(TOKEN_PATH, async function (err, token) {
