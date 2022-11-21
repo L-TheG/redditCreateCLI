@@ -14,14 +14,11 @@ dotenv.config();
 // TODO: Add translation to German, Spanish, Portuguese, Italian, maybe Russian
 // TODO: Investigate glitches in background video
 // TODO: Investigate Bell placement on post screen
-// TODO: Add more background videos
 // TODO: Improve CLI output
-// TODO: Improve performance of audio generation
 // TODO: Censor swear words
 
 // Backlog
 // TODO: Add flag to set which platform the video goes to (maybe desktop too?)
-// TODO: Add flag to paremerise video length
 // TODO: Host assets somewhere else
 // TODO: Dockerise
 // TODO: Add motion blur to posts sliding in

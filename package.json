@@ -7,7 +7,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "rimraf ./build && tsc",
-    "start": "npm run build && node build/index.js --all --link=https://www.reddit.com/r/AskReddit/comments/yx41rn/whats_your_toxic_trait_that_youre_proud_of/ --bgVideosDir=bgVideos --workingDir=workingDir --duration=30 --title=\"reddit users toxic traits\" --tags=reddit,askreddit,shorts,society,depression,toxic,anxiety,social --description=\"reddit users reveal their toxic traits\""
+    "start": "npm run build && node build/index.js --all --link=https://www.reddit.com/r/AskReddit/comments/yx9ftw/what_radical_change_affecting_most_if_not_all_of/ --bgVideosDir=bgVideos --workingDir=workingDir --duration=30 --title=\"reddit trying to predict the future...\" --tags=reddit,askreddit,shorts,future,scifi,sci-fi,prediction,society --description=\"reddits prediction for what major events may happen in their lifetime\""
   },
   "keywords": [],
   "author": "",
