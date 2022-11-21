@@ -7,13 +7,14 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "rimraf ./build && tsc",
-    "start": "npm run build && node build/index.js --upload --link=https://www.reddit.com/r/AskReddit/comments/yxa8k1/whats_an_addiction_that_no_one_takes_seriously/ --bgVideosDir=bgVideos --workingDir=workingDir --duration=30 --title='quotable movies' --tags='reddit,askreddit'"
+    "start": "npm run build && node build/index.js --upload --link=https://www.reddit.com/r/AskReddit/comments/yzp591/if_there_was_a_vote_for_one_person_to_receive/ --bgVideosDir=bgVideos --workingDir=workingDir --duration=30 --title=\"reddits chooses immortals\" --tags=reddit,askreddit,shorts,gameplay --description=\"askreddit users choose people deserving of immortality\""
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
     "@types/node": "^18.11.9",
+    "@types/server-destroy": "^1.0.1",
     "@typescript-eslint/eslint-plugin": "^5.42.1",
     "@typescript-eslint/parser": "^5.42.1",
     "eslint": "^8.27.0",
@@ -23,6 +24,7 @@
   },
   "dependencies": {
     "@google-cloud/local-auth": "^2.1.1",
+    "axios": "^1.1.3",
     "concurrently": "^7.5.0",
     "dotenv": "^16.0.3",
     "google-auth-library": "^8.7.0",

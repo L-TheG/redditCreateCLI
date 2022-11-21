@@ -1,69 +1,67 @@
-// Copyright 2016 Google LLC
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//    http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
-/**
- * Usage: node upload.js PATH_TO_VIDEO_FILE
- */
-
 import { createReadStream, statSync } from "fs";
-import { join } from "path";
 import { clearLine, cursorTo } from "readline";
 import { google } from "googleapis";
-import { authenticate } from "@google-cloud/local-auth";
-import { cwd } from "process";
+import { OAuth2Client } from "google-auth-library";
 
-// initialize the Youtube API library
-const youtube = google.youtube("v3");
+export async function uploadYoutubeVideo(vidSettings: { title: string; tags: string[]; fileName: string; description: string }) {
+  const date = new Date();
+  const test = date.setHours(date.getHours() + 2);
+  const isodate = new Date(test).toISOString();
 
-// very basic example of uploading a video to youtube
-export async function runSample(fileName: string) {
-  // Obtain user credentials to use for the request
-  const auth = await authenticate({
-    keyfilePath: join(cwd(), "client_secret.json"),
-    scopes: ["https://www.googleapis.com/auth/youtube.upload", "https://www.googleapis.com/auth/youtube"],
+  const clientSecret = process.env.OAUTH_CLIENT_SECRET;
+  const clientId = process.env.OAUTH_CLIENT_ID;
+  const redirectUrl = process.env.OAUTH_REDIRECT_URL;
+  const service = google.youtube("v3");
+  const oauth2Client = new OAuth2Client(clientId, clientSecret, redirectUrl);
+
+  const response = await fetch("https://www.googleapis.com/oauth2/v4/token", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      client_id: clientId,
+      client_secret: clientSecret,
+      refresh_token: process.env.OAUTH_REFRESH_TOKEN,
+      grant_type: "refresh_token",
+    }),
   });
-  google.options({ auth });
+  const token = await response.json();
+  oauth2Client.setCredentials({ access_token: token.access_token });
 
-  const fileSize = statSync(fileName).size;
-  const res = await youtube.videos.insert(
+  await service.videos.insert(
     {
       part: ["id,snippet", "status"],
-      notifySubscribers: false,
+      auth: oauth2Client,
+      notifySubscribers: true,
       requestBody: {
         snippet: {
-          title: "Node.js YouTube Upload Test",
-          description: "Testing YouTube upload via Google APIs Node.js Client",
+          title: vidSettings.title,
+          description: vidSettings.description,
+          channelId: "UC1Vih4EKkirbBmx1iWU3B3w",
+          channelTitle: "Folyvora",
+          tags: vidSettings.tags,
+          categoryId: "24",
         },
         status: {
-          privacyStatus: "private",
+          publishAt: isodate,
+          privacyStatus: "public",
+          madeForKids: false,
         },
       },
       media: {
-        body: createReadStream(fileName),
+        body: createReadStream(vidSettings.fileName),
       },
     },
     {
       // Use the `onUploadProgress` event from Axios to track the
       // number of bytes uploaded to this point.
       onUploadProgress: (evt) => {
-        const progress = (evt.bytesRead / fileSize) * 100;
+        const progress = (evt.bytesRead / statSync(vidSettings.fileName).size) * 100;
         clearLine(process.stdout, 0);
         cursorTo(process.stdout, 0, undefined);
         process.stdout.write(`${Math.round(progress)}% complete`);
       },
     }
   );
-  console.log("\n\n");
-  console.log(res.data);
-  return res.data;
 }

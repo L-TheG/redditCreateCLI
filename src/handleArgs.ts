@@ -53,6 +53,7 @@ export function parseArgs() {
   let duration: number | undefined;
   let title: string | undefined;
   let tags: string | undefined;
+  let description: string | undefined;
 
   process.argv.forEach((element) => {
     if (element.includes("--link=")) {
@@ -73,6 +74,9 @@ export function parseArgs() {
     if (element.includes("--bgVideosDir=")) {
       bgVideosDir = element.split("=")[1];
     }
+    if (element.includes("--description=")) {
+      description = element.split("=")[1];
+    }
   });
 
   if (link === undefined) {
@@ -92,13 +96,17 @@ export function parseArgs() {
     process.exit();
   }
   if (title === undefined) {
-    console.log("No video title was provided (--title='Your Video Title')");
+    console.log('No video title was provided (--title="Video Title in quotes")');
     process.exit();
   }
   if (tags === undefined) {
     console.log("No tags were provided (--tags=comma,seperated,tags)");
     process.exit();
   }
+  if (description === undefined) {
+    console.log('No description was provided (--description="description in quotes")');
+    process.exit();
+  }
 
-  return { bgVideosDir, workingDir, link, duration, title, tags };
+  return { bgVideosDir, workingDir, link, duration, title, tags, description };
 }

@@ -3,22 +3,17 @@ import { cwd } from "process";
 import { copyFileSync, cpSync, existsSync, mkdirSync, readdirSync, writeFileSync } from "fs";
 import { installVideoCreator, installDataGetter, getData, renderVideo } from "./commands.js";
 import { parseArgs, parseFlags } from "./handleArgs.js";
-import { runSample } from "./youtubeUpload.js";
+import { uploadYoutubeVideo } from "./youtubeUpload.js";
 import { join } from "path";
 
 dotenv.config();
 const charactersOfTitleToKeep = 23;
 
 // TODO: Comment code
-// TODO: Add flags to only do certain parts of this pipeline
-// TODO: Make Asset folder top level and pass as argument
-// TODO: Auto upload to Youtube, TikTok, Instagram
+// TODO: Auto upload to TikTok, Instagram
 // TODO: Add translation to German, Spanish, Portuguese, Italian, maybe Russian
 // TODO: Investigate glitches in background video
-// TODO: Randomise which part of which background video gets used
 // TODO: Investigate Bell placement on post screen
-// TODO: Centralise output of all components (public folder, datagetter output, videocreator in and output) in cli root
-// TODO: Add option to set title at gen time
 // TODO: Add more background videos
 // TODO: Improve CLI output
 // TODO: Improve performance of audio generation
@@ -36,7 +31,7 @@ const charactersOfTitleToKeep = 23;
 // TODO: Add auto thumbnail
 // TODO: Add possibility for custom thumbnails
 
-// create --all/--scrape/--render/--upload --bgVideosDir=/pathToAsetts --workingDir=/pathToOutFolder --link=www.post.link --duration=0 --title=title --tags=these,are,tags
+// create --all/--scrape/--render/--upload --bgVideosDir=/pathToAsetts --workingDir=/pathToOutFolder --link=www.post.link --duration=0 --title=title --tags=these,are,tags --description='your description here'
 
 const args = parseArgs();
 const flags = parseFlags();
@@ -76,7 +71,13 @@ async function main() {
   }
 
   if (flags.all || flags.upload) {
-    await runSample(join(cwd(), args.workingDir, projectDirName, "out", projectDirName + ".mp4"));
+    // await runSample(join(cwd(), args.workingDir, projectDirName, "out", projectDirName + ".mp4"));
+    await uploadYoutubeVideo({
+      fileName: join(cwd(), args.workingDir, projectDirName, "out", projectDirName + ".mp4"),
+      tags: args.tags.split(","),
+      description: args.description,
+      title: args.title,
+    });
   }
 }
 
