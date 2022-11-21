@@ -45,8 +45,9 @@ export async function uploadYoutubeVideo(vidSettings: { title: string; tags: str
         },
         status: {
           publishAt: isodate,
-          privacyStatus: "public",
+          privacyStatus: "private",
           madeForKids: false,
+          selfDeclaredMadeForKids: false,
         },
       },
       media: {

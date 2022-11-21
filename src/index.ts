@@ -1,13 +1,13 @@
 import * as dotenv from "dotenv";
 import { cwd } from "process";
-import { copyFileSync, cpSync, existsSync, mkdirSync, readdirSync, writeFileSync } from "fs";
+import { copyFileSync, cpSync } from "fs";
 import { installVideoCreator, installDataGetter, getData, renderVideo } from "./commands.js";
 import { parseArgs, parseFlags } from "./handleArgs.js";
 import { uploadYoutubeVideo } from "./youtubeUpload.js";
 import { join } from "path";
+import { createProjectDirName, createDir, selectBgVideo, getGameplayTags, createConfigFile } from "./utils.js";
 
 dotenv.config();
-const charactersOfTitleToKeep = 23;
 
 // TODO: Comment code
 // TODO: Auto upload to TikTok, Instagram
@@ -17,6 +17,7 @@ const charactersOfTitleToKeep = 23;
 // TODO: Add more background videos
 // TODO: Improve CLI output
 // TODO: Improve performance of audio generation
+// TODO: Censor swear words
 
 // Backlog
 // TODO: Add flag to set which platform the video goes to (maybe desktop too?)
@@ -55,23 +56,10 @@ async function main() {
   }
 
   if (flags.all || flags.render) {
-    createDir(join(cwd(), "VideoCreator", "public", "assets", "bgVideos"));
-    cpSync(join(cwd(), args.workingDir, projectDirName), join(cwd(), "VideoCreator", "public", projectDirName), {
-      force: true,
-      recursive: true,
-    });
-    const selectedBgVideo = selectBgVideo(join(cwd(), args.bgVideosDir));
-    copyFileSync(join(cwd(), args.bgVideosDir, selectedBgVideo), join(cwd(), "VideoCreator", "public", "assets", "bgVideos", selectedBgVideo));
-
-    createConfigFile(projectDirName, selectedBgVideo);
-    await renderVideo(join(cwd(), args.workingDir, projectDirName, "out", projectDirName + ".mp4"), "RedditVid");
-    if (flags.render) {
-      return;
-    }
+    await handleReder();
   }
 
   if (flags.all || flags.upload) {
-    // await runSample(join(cwd(), args.workingDir, projectDirName, "out", projectDirName + ".mp4"));
     await uploadYoutubeVideo({
       fileName: join(cwd(), args.workingDir, projectDirName, "out", projectDirName + ".mp4"),
       tags: args.tags.split(","),
@@ -81,33 +69,22 @@ async function main() {
   }
 }
 
-function createConfigFile(contentPath: string, selectedBgVideo: string) {
-  writeFileSync(join(cwd(), "VideoCreator/props.json"), JSON.stringify({ projectFolder: contentPath, selectedBgVideo: selectedBgVideo }));
-}
+async function handleReder() {
+  createDir(join(cwd(), "VideoCreator", "public", "assets", "bgVideos"));
+  cpSync(join(cwd(), args.workingDir, projectDirName), join(cwd(), "VideoCreator", "public", projectDirName), {
+    force: true,
+    recursive: true,
+  });
+  const selectedBgVideo = selectBgVideo(join(cwd(), args.bgVideosDir));
+  copyFileSync(join(cwd(), args.bgVideosDir, selectedBgVideo), join(cwd(), "VideoCreator", "public", "assets", "bgVideos", selectedBgVideo));
 
-function createProjectDirName(link: string) {
-  const dateString = createDateString();
-  const subreddit = link.split("/")[4];
-  const id = link.split("/")[6];
-  const title = link.split("/")[7].substring(0, charactersOfTitleToKeep);
-  return `${dateString}_${subreddit}_${id}_${title}`;
-}
-
-function createDateString() {
-  const now = new Date();
-  const offsetMs = now.getTimezoneOffset() * 60 * 1000;
-  const dateLocal = new Date(now.getTime() - offsetMs);
-  const dateString = dateLocal.toISOString().slice(0, 19).replace("T", "_").replaceAll(":", "_").substring(0, 10);
-  return dateString;
-}
-
-function createDir(dirToCreate: string) {
-  if (!existsSync(dirToCreate)) {
-    mkdirSync(dirToCreate, { recursive: true });
+  const gameplayTags = getGameplayTags(selectedBgVideo);
+  if (gameplayTags) {
+    args.description += gameplayTags;
   }
-}
-
-function selectBgVideo(absolutePathToBgVidDir: string) {
-  const bgVideos = readdirSync(absolutePathToBgVidDir);
-  return bgVideos[Math.floor(Math.random() * bgVideos.length)];
+  createConfigFile(projectDirName, selectedBgVideo);
+  await renderVideo(join(cwd(), args.workingDir, projectDirName, "out", projectDirName + ".mp4"), "RedditVid");
+  if (flags.render) {
+    process.exit(0);
+  }
 }

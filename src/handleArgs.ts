@@ -108,5 +108,8 @@ export function parseArgs() {
     process.exit();
   }
 
+  tags.split(",").forEach((tag) => {
+    description += " #" + tag;
+  });
   return { bgVideosDir, workingDir, link, duration, title, tags, description };
 }
