@@ -40,11 +40,11 @@ export async function getData(link: string, workingDirAbsolutePath: string, dura
 }
 
 export async function renderVideo(outputLocation: string, compositionID: string) {
-  console.log(`EXECUTING: npx remotion render --props=./props.json ${compositionID} ${outputLocation} --concurrency=8 --gl=angle`);
+  console.log(`EXECUTING: npx remotion render --props=./props.json ${compositionID} ${outputLocation} --concurrency=4`);
   const command = concurrently(
     [
       {
-        command: `npx remotion render --props=./props.json ${compositionID} ${outputLocation} --concurrency=8 --gl=angle`,
+        command: `npx remotion render --props=./props.json ${compositionID} ${outputLocation} --concurrency=4`,
       },
     ],
     {
