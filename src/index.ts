@@ -1,33 +1,35 @@
 import * as dotenv from "dotenv";
-import { cwd } from "process";
 import { copyFileSync, cpSync } from "fs";
-import { installVideoCreator, installDataGetter, getData, renderVideo } from "./commands.js";
-import { parseArgs, parseFlags } from "./handleArgs.js";
-import { uploadYoutubeVideo } from "./youtubeUpload.js";
 import { join } from "path";
-import { createProjectDirName, createDir, selectBgVideo, getGameplayTags, createConfigFile } from "./utils.js";
+import { cwd } from "process";
+import { getData, installDataGetter, installVideoCreator, renderVideo } from "./commands.js";
+import { parseArgs, parseFlags } from "./handleArgs.js";
+import { createConfigFile, createDir, createProjectDirName, selectBgVideo } from "./utils.js";
+import { uploadYoutubeVideo } from "./youtubeUpload.js";
 
 dotenv.config();
 
 // TODO: Comment code
+// TODO: Need better hook at beginning of video (viewership drops too fast)
 // TODO: Auto upload to TikTok, Instagram
 // TODO: Add translation to German, Spanish, Portuguese, Italian, maybe Russian
 // TODO: Investigate glitches in background video
-// TODO: Investigate Bell placement on post screen
 // TODO: Improve CLI output
 // TODO: Censor swear words
+// TODO: update remix and use dynamic links
+// TODO: More diverse bg videos
+// TODO: thinkof better hook
 
 // Backlog
+// TODO: Read comment threads
 // TODO: Add flag to set which platform the video goes to (maybe desktop too?)
 // TODO: Host assets somewhere else
-// TODO: Dockerise
 // TODO: Add motion blur to posts sliding in
-// TODO: Make waiting for audio clips more accurate
 // TODO: Add long format posts
 // TODO: Add image posts
 // TODO: Add frontpage report
-// TODO: Add auto thumbnail
-// TODO: Add possibility for custom thumbnails
+// TODO: Make it work in the cloud
+// TODO: Dockerise
 
 // create --all/--scrape/--render/--upload --bgVideosDir=/pathToAsetts --workingDir=/pathToOutFolder --link=www.post.link --duration=0 --title=title --tags=these,are,tags --description='your description here'
 
@@ -75,10 +77,6 @@ async function handleReder() {
   const selectedBgVideo = selectBgVideo(join(cwd(), args.bgVideosDir));
   copyFileSync(join(cwd(), args.bgVideosDir, selectedBgVideo), join(cwd(), "VideoCreator", "public", "assets", "bgVideos", selectedBgVideo));
 
-  const gameplayTags = getGameplayTags(selectedBgVideo);
-  if (gameplayTags) {
-    args.description += gameplayTags;
-  }
   createConfigFile(projectDirName, selectedBgVideo);
   await renderVideo(join(cwd(), args.workingDir, projectDirName, "out", projectDirName + ".mp4"), "RedditVid");
   if (flags.render) {

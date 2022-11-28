@@ -1,11 +1,11 @@
 import { createReadStream, statSync } from "fs";
-import { clearLine, cursorTo } from "readline";
-import { google } from "googleapis";
 import { OAuth2Client } from "google-auth-library";
+import { google } from "googleapis";
+import { clearLine, cursorTo } from "readline";
 
 export async function uploadYoutubeVideo(vidSettings: { title: string; tags: string[]; fileName: string; description: string }) {
   const date = new Date();
-  const test = date.setHours(date.getHours() + 2);
+  const test = date.setHours(date.getHours() + 1);
   const isodate = new Date(test).toISOString();
 
   const clientSecret = process.env.YT_OAUTH_CLIENT_SECRET;
